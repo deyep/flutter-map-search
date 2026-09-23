@@ -1,0 +1,37 @@
+[
+  {
+    "id": "tenjin_station",
+    "title": "天神駅",
+    "description": "福岡市地下鉄空港線",
+    "lat": 33.5913,
+    "lng": 130.3989
+  },
+  {
+    "id": "kego_shrine",
+    "title": "警固神社",
+    "description": "天神の中心にある神社",
+    "lat": 33.5885,
+    "lng": 130.3984
+  },
+  {
+    "id": "fukuoka_castle",
+    "title": "福岡城跡",
+    "description": "舞鶴公園内の城跡",
+    "lat": 33.5846,
+    "lng": 130.3829
+  },
+  {
+    "id": "ohori_park",
+    "title": "大濠公園",
+    "description": "池を中心とした大きな公園",
+    "lat": 33.5862,
+    "lng": 130.3764
+  },
+  {
+    "id": "yakuin_station",
+    "title": "薬院駅",
+    "description": "西鉄天神大牟田線・地下鉄七隈線",
+    "lat": 33.5810,
+    "lng": 130.4020
+  }
+]
