@@ -54,8 +54,11 @@ class _MapPageState extends State<MapPage> {
       body: GoogleMap(
         initialCameraPosition: _fukuokaChuo,
         markers: _markers,
-        // 地図のボタンやロゴがステータスバーに隠れないよう上側に余白を取る
-        padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
+        // 地図のボタンやロゴがステータスバーやホームインジケーターに隠れないよう上下に余白を取る
+        padding: EdgeInsets.only(
+          top: MediaQuery.paddingOf(context).top,
+          bottom: MediaQuery.paddingOf(context).bottom,
+        ),
       ),
     );
   }
