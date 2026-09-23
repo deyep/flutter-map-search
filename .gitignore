@@ -1,3 +1,6 @@
+# Environment variables for the project
+.env
+
 # Miscellaneous
 *.class
 *.log
