@@ -50,10 +50,12 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Map')),
+      // AppBar・SafeArea を使わず、ステータスバーの裏まで地図を描画する
       body: GoogleMap(
         initialCameraPosition: _fukuokaChuo,
         markers: _markers,
+        // 地図のボタンやロゴがステータスバーに隠れないよう上側に余白を取る
+        padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
       ),
     );
   }
