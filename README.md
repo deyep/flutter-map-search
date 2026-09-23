@@ -1,4 +1,4 @@
-# flutter_sample
+# flutter_map_search
 
 A new Flutter project.
 
