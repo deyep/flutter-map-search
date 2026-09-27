@@ -3,13 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_map_search/pin.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  test('{ "pins": [...] } 形式の JSON からピン一覧を作れる', () {
+    final pins = Pin.listFromJsonString('''
+      {"pins": [
+        {"id": "a", "title": "A", "description": "desc", "lat": 33, "lng": 130.5}
+      ]}
+    ''');
 
-  test('assets/pins.json からピン一覧を読み込める', () async {
-    final pins = await Pin.loadFromAsset('assets/pins.json');
-
-    expect(pins, hasLength(5));
-    expect(pins.first.title, '天神駅');
-    expect(pins.map((p) => p.id).toSet(), hasLength(pins.length));
+    expect(pins, hasLength(1));
+    expect(pins.first.id, 'a');
+    expect(pins.first.position.latitude, 33.0);
+    expect(pins.first.position.longitude, 130.5);
   });
 }

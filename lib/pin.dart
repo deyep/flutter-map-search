@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// 地図上に表示するピン1つ分のデータ
@@ -29,10 +28,10 @@ class Pin {
     );
   }
 
-  /// assets 内の JSON 配列からピン一覧を読み込む
-  static Future<List<Pin>> loadFromAsset(String path) async {
-    final jsonString = await rootBundle.loadString(path);
-    final list = jsonDecode(jsonString) as List<dynamic>;
+  /// `{ "pins": [...] }` 形式の JSON 文字列からピン一覧を作る
+  static List<Pin> listFromJsonString(String jsonString) {
+    final body = jsonDecode(jsonString) as Map<String, dynamic>;
+    final list = body['pins'] as List<dynamic>;
     return list
         .map((e) => Pin.fromJson(e as Map<String, dynamic>))
         .toList();

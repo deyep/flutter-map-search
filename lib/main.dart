@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'pin.dart';
+import 'pin_repository.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp(pinRepository: createPinRepository()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.pinRepository});
+
+  final PinRepository pinRepository;
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: MapPage(),
-    );
+    return MaterialApp(home: MapPage(pinRepository: pinRepository));
   }
 }
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({super.key, required this.pinRepository});
+
+  final PinRepository pinRepository;
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -40,11 +43,21 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _loadPins() async {
-    final pins = await Pin.loadFromAsset('assets/pins.json');
-    if (!mounted) return;
-    setState(() {
-      _markers = pins.map((pin) => pin.toMarker()).toSet();
-    });
+    try {
+      final pins = await widget.pinRepository.fetchPins();
+      if (!mounted) return;
+      setState(() {
+        _markers = pins.map((pin) => pin.toMarker()).toSet();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ピンを読み込めませんでした: $e'),
+          action: SnackBarAction(label: '再試行', onPressed: _loadPins),
+        ),
+      );
+    }
   }
 
   @override
