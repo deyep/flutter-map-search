@@ -1,0 +1,9 @@
+name = "flutter-map-search-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+# D1 は実装ステップ3で追加する（docs/api-spec.md 6章）
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "pins-db"
+# database_id = "<wrangler d1 create の出力>"
