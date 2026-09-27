@@ -5,6 +5,5 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "map-search-db"
-# 本番の D1 を作るときに `wrangler d1 create map-search-db` の出力で置き換える（実装ステップ5）
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "3511d3d1-290f-400a-9f00-b676bee730c8"
 migrations_dir = "migrations"

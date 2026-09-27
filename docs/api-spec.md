@@ -39,7 +39,7 @@ flutter-map-search/
 | --------------------- | --------------------------------------------------- |
 | ローカル（iOSシミュレータ / Web） | `http://localhost:8787`                             |
 | ローカル（Androidエミュレータ）   | `http://10.0.2.2:8787`                              |
-| 本番                    | `https://map-search-api.<アカウント>.workers.dev`（将来カスタムドメイン） |
+| 本番                    | `https://map-search-api.ideyep.workers.dev`（将来カスタムドメイン） |
 
 
 Flutter側には `--dart-define=API_BASE_URL=<URL>` で渡す。
@@ -199,13 +199,14 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "map-search-db"
-database_id = "<wrangler d1 create の出力>"
+database_id = "3511d3d1-290f-400a-9f00-b676bee730c8"
 migrations_dir = "migrations"
 ```
 
 - Worker名・D1名は、Flutter専用ではなくサービス全体のものとして `map-search-` で始める。
 - D1はサービス全体のDBとし、今後のテーブル（ユーザー、お気に入りなど）も同じDBに追加する。
-- ローカル開発では `npm run db:migrate:local`（`wrangler d1 migrations apply map-search-db --local`）で `server/.wrangler/` 内のD1にマイグレーションを適用する。`database_id` は本番のD1を作るまで仮の値でよい。
+- ローカル開発では `npm run db:migrate:local` で `server/.wrangler/` 内のD1に、本番は `npm run db:migrate:remote` で本番のD1にマイグレーションを適用する。
+- ローカルのD1は `database_id` ごとに別のDBとして作られるため、`database_id` を変えたら `npm run db:migrate:local` をやり直す。
 - テストはwranglerの `getPlatformProxy()` でメモリ上のD1を用意し、マイグレーションを適用してから実行する。
 
 
@@ -246,7 +247,7 @@ migrations_dir = "migrations"
 2. **Flutter接続**: Flutter側の変更点の1〜4を実装し、ローカルのWorkerから表示されることを確認する。（済・iOSシミュレータで確認）
 3. **D1移行**: スキーマ作成とデータ投入を行い、Workerを `SELECT` に置き換える（レスポンスの形は変えない）。（済・ローカルのD1で確認）
 4. **検索**: 範囲検索と `q` を実装し、Flutter側の変更点の5を実装する。
-5. **デプロイ**: `wrangler deploy` を実行し、本番URLで動作を確認する。
+5. **デプロイ**: `wrangler deploy` を実行し、本番URLで動作を確認する。（済・2026-09-27 に `https://map-search-api.ideyep.workers.dev` へ公開。検索の実装より先に実施）
 6. **（任意）CI**: GitHub ActionsでWorkerを自動デプロイする。
 
 
