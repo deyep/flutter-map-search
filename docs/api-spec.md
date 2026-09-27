@@ -3,64 +3,78 @@
 Flutterマップ検索アプリのピンを、ローカルの `assets/pins.json` からサーバーAPI経由の取得に切り替えるための仕様。
 
 - ステータス: ドラフト
-- 最終更新: 2026-09-23
+- 最終更新: 2026-09-27
 
 ## 1. 全体構成
 
-| 要素         | 採用技術                                      | 役割                       |
-| ------------ | --------------------------------------------- | -------------------------- |
-| API          | Cloudflare Workers（TypeScript）              | ピン一覧・検索のHTTP API   |
-| DB           | Cloudflare D1（SQLite互換）                   | ピンデータの保存           |
-| クライアント | Flutter（`google_maps_flutter` + `http`） | 取得したピンをマーカー表示 |
+
+| 要素     | 採用技術                                    | 役割               |
+| ------ | --------------------------------------- | ---------------- |
+| API    | Cloudflare Workers（TypeScript）          | ピン一覧・検索のHTTP API |
+| DB     | Cloudflare D1（SQLite互換）                 | ピンデータの保存         |
+| クライアント | Flutter（`google_maps_flutter` + `http`） | 取得したピンをマーカー表示    |
+
 
 リポジトリ構成（モノレポ）:
 
 ```
 flutter-map-search/
 ├── lib/            # Flutterアプリ
-├── assets/pins.json  # フォールバック用（API失敗時）
+├── assets/pins.json  # API_BASE_URL 未指定時に使うローカルデータ
 └── server/         # Cloudflare Worker
     ├── src/index.ts
     ├── migrations/0001_create_pins.sql
     └── wrangler.toml
 ```
 
+
+
 ## 2. ベースURL
 
-| 環境                              | URL                                                                     |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| ローカル（iOSシミュレータ / Web） | `http://localhost:8787`                                               |
-| ローカル（Androidエミュレータ）   | `http://10.0.2.2:8787`                                                |
-| 本番                              | `https://<worker名>.<アカウント>.workers.dev`（将来カスタムドメイン） |
+
+| 環境                    | URL                                                 |
+| --------------------- | --------------------------------------------------- |
+| ローカル（iOSシミュレータ / Web） | `http://localhost:8787`                             |
+| ローカル（Androidエミュレータ）   | `http://10.0.2.2:8787`                              |
+| 本番                    | `https://<worker名>.<アカウント>.workers.dev`（将来カスタムドメイン） |
+
 
 Flutter側には `--dart-define=API_BASE_URL=<URL>` で渡す。
 
 ## 3. データモデル
 
+
+
 ### Pin
 
-| フィールド      | 型     | 必須 | 説明                                              |
-| --------------- | ------ | ---- | ------------------------------------------------- |
-| `id`          | string | ○   | 一意なID（スネークケース。例:`tenjin_station`） |
-| `title`       | string | ○   | 表示名（InfoWindowのタイトル）                    |
-| `description` | string | ○   | 説明（InfoWindowのスニペット）                    |
-| `lat`         | number | ○   | 緯度（-90〜90）                                   |
-| `lng`         | number | ○   | 経度（-180〜180）                                 |
 
-現在の `assets/pins.json` および `Pin.fromJson` と同じ形。APIのレスポンスもこの形に揃え、Flutter側のパース処理を変えずに済むようにする。
+| フィールド         | 型      | 必須  | 説明                                |
+| ------------- | ------ | --- | --------------------------------- |
+| `id`          | string | ○   | 一意なID（スネークケース。例:`tenjin_station`） |
+| `title`       | string | ○   | 表示名（InfoWindowのタイトル）              |
+| `description` | string | ○   | 説明（InfoWindowのスニペット）              |
+| `lat`         | number | ○   | 緯度（-90〜90）                        |
+| `lng`         | number | ○   | 経度（-180〜180）                      |
+
+
+`Pin.fromJson` がパースする形。`assets/pins.json` とAPIのレスポンスは、どちらもこのPinの配列を `{ "pins": [...] }` で包んだ形に揃え、Flutter側は同じパース処理（`Pin.listFromJsonString`）を使う。
 
 ## 4. エンドポイント
+
+
 
 ### 4.1 `GET /api/pins` — ピン一覧・検索
 
 クエリパラメータ（すべて省略可能）:
 
-| パラメータ              | 型      | 説明                                                  |
-| ----------------------- | ------- | ----------------------------------------------------- |
-| `minLat` / `maxLat` | number  | 表示範囲の緯度の下限・上限                            |
-| `minLng` / `maxLng` | number  | 表示範囲の経度の下限・上限                            |
-| `q`                   | string  | キーワード（`title` と `description` の部分一致） |
-| `limit`               | integer | 最大件数（初期値 100、上限 500）                      |
+
+| パラメータ               | 型       | 説明                                   |
+| ------------------- | ------- | ------------------------------------ |
+| `minLat` / `maxLat` | number  | 表示範囲の緯度の下限・上限                        |
+| `minLng` / `maxLng` | number  | 表示範囲の経度の下限・上限                        |
+| `q`                 | string  | キーワード（`title` と `description` の部分一致） |
+| `limit`             | integer | 最大件数（初期値 100、上限 500）                 |
+
 
 - 範囲のパラメータは4つそろったときだけ有効。一部だけ指定された場合は `400` を返す。
 - パラメータを指定しなければ全件を返す（`limit` の範囲内）。
@@ -68,18 +82,20 @@ Flutter側には `--dart-define=API_BASE_URL=<URL>` で渡す。
 レスポンス `200 OK`（`Content-Type: application/json; charset=utf-8`）:
 
 ```json
-[
-  {
-    "id": "tenjin_station",
-    "title": "天神駅",
-    "description": "福岡市地下鉄空港線",
-    "lat": 33.5913,
-    "lng": 130.3989
-  }
-]
+{
+  "pins": [
+    {
+      "id": "tenjin_station",
+      "title": "天神駅",
+      "description": "福岡市地下鉄空港線",
+      "lat": 33.5913,
+      "lng": 130.3989
+    }
+  ]
+}
 ```
 
-> 現在のアプリとの互換性を優先し、レスポンスはトップレベルを配列にする。ページングなどのメタ情報が必要になったら `/api/v2/pins` で `{ "items": [...], "next": ... }` の形に変える。
+> トップレベルをオブジェクトにしておき、ページングなどのメタ情報が必要になったら `{ "pins": [...], "next": ... }` のようにフィールドを足す。既存のクライアントは `pins` だけを読むので壊れない。
 
 例:
 
@@ -89,14 +105,20 @@ GET /api/pins?minLat=33.58&maxLat=33.60&minLng=130.37&maxLng=130.41
 GET /api/pins?q=駅
 ```
 
+
+
 ### 4.2 `GET /api/pins/:id` — ピン1件
 
 - `200 OK`: Pinオブジェクト1件
 - `404 Not Found`: 該当なし
 
+
+
 ### 4.3 `GET /api/health` — 死活確認
 
 - `200 OK`: `{ "status": "ok" }`
+
+
 
 ### 4.4 書き込みAPI（将来）
 
@@ -110,12 +132,16 @@ GET /api/pins?q=駅
 { "error": { "code": "invalid_params", "message": "bbox requires minLat, maxLat, minLng, maxLng" } }
 ```
 
-| HTTP | code                   | 発生条件                                     |
-| ---- | ---------------------- | -------------------------------------------- |
+
+| HTTP | code                 | 発生条件                   |
+| ---- | -------------------- | ---------------------- |
 | 400  | `invalid_params`     | パラメータの型・範囲が不正、範囲指定が不完全 |
-| 404  | `not_found`          | ピンまたはパスが存在しない                   |
-| 405  | `method_not_allowed` | 対応していないHTTPメソッド                   |
-| 500  | `internal_error`     | DBエラーなど                                 |
+| 404  | `not_found`          | ピンまたはパスが存在しない          |
+| 405  | `method_not_allowed` | 対応していないHTTPメソッド        |
+| 500  | `internal_error`     | DBエラーなど                |
+
+
+
 
 ## 6. D1スキーマ
 
@@ -173,6 +199,8 @@ database_name = "pins-db"
 database_id = "<wrangler d1 create の出力>"
 ```
 
+
+
 ## 7. セキュリティ・運用
 
 - 読み取りAPIは認証なしで公開する。
@@ -181,14 +209,27 @@ database_id = "<wrangler d1 create の出力>"
 - キャッシュ: 読み取りAPIに `Cache-Control: public, max-age=60` を付ける。
 - 大量アクセスへの対策が必要になったら、Cloudflareのレート制限ルールを使う。
 
+
+
 ## 8. Flutter側の変更点
 
-1. `pubspec.yaml` に `http` を追加する。
-2. `Pin.fetchFromApi(String baseUrl, {LatLngBounds? bounds, String? q})` を追加する。パースは既存の `Pin.fromJson` を使い回す。
-3. `API_BASE_URL` を `String.fromEnvironment` で読む。
-4. API取得に失敗したら、`Pin.loadFromAsset('assets/pins.json')` に切り替える。
-5. 範囲検索: `GoogleMap.onCameraIdle` で `getVisibleRegion()` を呼び、表示範囲をAPIに渡して再取得する（連続した呼び出しはデバウンスする）。
-6. 読み込み中・エラーの状態を画面に表示する。
+ピンの取得は `lib/pin_repository.dart` の `PinRepository` に集約し、画面（`MapPage`）は `fetchPins()` だけを呼ぶ。
+
+
+| 実装                   | 取得元                           |
+| -------------------- | ----------------------------- |
+| `AssetPinRepository` | `assets/pins.json`            |
+| `ApiPinRepository`   | `GET {API_BASE_URL}/api/pins` |
+
+
+1. `pubspec.yaml` に `http` を追加する。（済）
+2. `PinRepository` と上記2つの実装を追加する。パースは `Pin.listFromJsonString` を共通で使う。（済）
+3. `createPinRepository()` で `API_BASE_URL`（`String.fromEnvironment`）を読み、指定があれば `ApiPinRepository`、なければ `AssetPinRepository` を使う。（済）
+4. API取得に失敗したら（200以外・タイムアウト10秒・通信エラー）、assetsには切り替えず、「再試行」付きのSnackBarでエラーを表示する。（済）
+5. 範囲検索: `fetchPins` に表示範囲とキーワードの引数を足す。`GoogleMap.onCameraIdle` で `getVisibleRegion()` を呼び、表示範囲をAPIに渡して再取得する（連続した呼び出しはデバウンスする）。
+6. 読み込み中の状態を画面に表示する。
+
+
 
 ## 9. 実装ステップ
 
@@ -199,8 +240,11 @@ database_id = "<wrangler d1 create の出力>"
 5. **デプロイ**: `wrangler deploy` を実行し、本番URLで動作を確認する。
 6. **（任意）CI**: GitHub ActionsでWorkerを自動デプロイする。
 
+
+
 ## 10. 未決事項
 
 - ピンの件数の見込み（数百件を超えるなら、範囲検索に加えてクラスタリングやページングを検討する）
 - カスタムドメインを使うかどうか
 - 書き込みAPIの利用者（管理画面か、アプリのユーザーか）
+
