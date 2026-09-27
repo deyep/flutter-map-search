@@ -1,0 +1,39 @@
+{
+  // 接続先ごとの起動設定。「実行とデバッグ」のプルダウンから選ぶ。
+  // 接続先の URL は config/*.json に書く。
+  // API_BASE_URL はビルド時に埋め込まれるため、切り替えるときはアプリを停止してから起動し直す。
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // 事前に server/ で `npm run dev` を起動しておく
+      "name": "Local (iOS Simulator)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define-from-file=config/local.json"]
+    },
+    {
+      // 事前に server/ で `npm run dev` を起動しておく
+      // Android では http 通信の許可設定（cleartext）が別途必要
+      "name": "Local (Android Emulator)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define-from-file=config/local-android.json"]
+    },
+    {
+      "name": "Prod",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define-from-file=config/prod.json"]
+    },
+    {
+      // サーバーを使わず assets/pins.json を読む
+      "name": "Assets (offline)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart"
+    }
+  ]
+}
