@@ -1,5 +1,5 @@
 {
-  "name": "flutter-map-search-api",
+  "name": "map-search-api",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply map-search-db --local",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260927.1",
+    "@types/node": "^24.19.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2",
     "wrangler": "^4.141.0"

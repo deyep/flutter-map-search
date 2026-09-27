@@ -23,7 +23,10 @@ flutter-map-search/
 ├── assets/pins.json  # API_BASE_URL 未指定時に使うローカルデータ
 └── server/         # Cloudflare Worker
     ├── src/index.ts
-    ├── migrations/0001_create_pins.sql
+    ├── src/index.test.ts
+    ├── migrations/
+    │   ├── 0001_create_pins.sql
+    │   └── 0002_seed_pins.sql
     └── wrangler.toml
 ```
 
@@ -36,7 +39,7 @@ flutter-map-search/
 | --------------------- | --------------------------------------------------- |
 | ローカル（iOSシミュレータ / Web） | `http://localhost:8787`                             |
 | ローカル（Androidエミュレータ）   | `http://10.0.2.2:8787`                              |
-| 本番                    | `https://<worker名>.<アカウント>.workers.dev`（将来カスタムドメイン） |
+| 本番                    | `https://map-search-api.<アカウント>.workers.dev`（将来カスタムドメイン） |
 
 
 Flutter側には `--dart-define=API_BASE_URL=<URL>` で渡す。
@@ -189,15 +192,21 @@ LIMIT ?6;
 `wrangler.toml`（抜粋）:
 
 ```toml
-name = "flutter-map-search-api"
+name = "map-search-api"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "pins-db"
+database_name = "map-search-db"
 database_id = "<wrangler d1 create の出力>"
+migrations_dir = "migrations"
 ```
+
+- Worker名・D1名は、Flutter専用ではなくサービス全体のものとして `map-search-` で始める。
+- D1はサービス全体のDBとし、今後のテーブル（ユーザー、お気に入りなど）も同じDBに追加する。
+- ローカル開発では `npm run db:migrate:local`（`wrangler d1 migrations apply map-search-db --local`）で `server/.wrangler/` 内のD1にマイグレーションを適用する。`database_id` は本番のD1を作るまで仮の値でよい。
+- テストはwranglerの `getPlatformProxy()` でメモリ上のD1を用意し、マイグレーションを適用してから実行する。
 
 
 
@@ -233,9 +242,9 @@ database_id = "<wrangler d1 create の出力>"
 
 ## 9. 実装ステップ
 
-1. **Worker（固定JSON）**: `GET /api/pins` で `pins.json` と同じ内容を返し、`wrangler dev` で動作を確認する。
-2. **Flutter接続**: Flutter側の変更点の1〜4を実装し、ローカルのWorkerから表示されることを確認する。
-3. **D1移行**: スキーマ作成とデータ投入を行い、Workerを `SELECT` に置き換える（レスポンスの形は変えない）。
+1. **Worker（固定JSON）**: `GET /api/pins` で `pins.json` と同じ内容を返し、`wrangler dev` で動作を確認する。（済）
+2. **Flutter接続**: Flutter側の変更点の1〜4を実装し、ローカルのWorkerから表示されることを確認する。（済・iOSシミュレータで確認）
+3. **D1移行**: スキーマ作成とデータ投入を行い、Workerを `SELECT` に置き換える（レスポンスの形は変えない）。（済・ローカルのD1で確認）
 4. **検索**: 範囲検索と `q` を実装し、Flutter側の変更点の5を実装する。
 5. **デプロイ**: `wrangler deploy` を実行し、本番URLで動作を確認する。
 6. **（任意）CI**: GitHub ActionsでWorkerを自動デプロイする。

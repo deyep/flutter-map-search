@@ -4,7 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "lib": ["ESNext"],
-    "types": ["@cloudflare/workers-types"],
+    // node はテスト（index.test.ts）でファイルを読むためだけに使う
+    "types": ["@cloudflare/workers-types", "node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
